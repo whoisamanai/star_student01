@@ -13,16 +13,15 @@ import {
   updateDoc,
   where,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
 const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID",
+  apiKey: "AIzaSyCD3M3O6Gve-fR-ufFY2SCKNuZakdHE6X8",
+  authDomain: "star-student-55d73.firebaseapp.com",
+  projectId: "star-student-55d73",
+  storageBucket: "star-student-55d73.firebasestorage.app",
+  messagingSenderId: "884212158549",
+  appId: "1:884212158549:web:d402b23ad59ce5de2ec4dc",
+  measurementId: "G-R7SDNPGJ4P"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
