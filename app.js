@@ -13,7 +13,6 @@ import {
   updateDoc,
   where,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyCD3M3O6Gve-fR-ufFY2SCKNuZakdHE6X8",
   authDomain: "star-student-55d73.firebaseapp.com",
@@ -23,7 +22,6 @@ const firebaseConfig = {
   appId: "1:884212158549:web:d402b23ad59ce5de2ec4dc",
   measurementId: "G-R7SDNPGJ4P"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
