@@ -30,6 +30,10 @@ const voteMessage = document.getElementById("vote-message");
 const leaderboard = document.getElementById("leaderboard");
 const leaderboardEmpty = document.getElementById("leaderboard-empty");
 const refreshBtn = document.getElementById("refresh-btn");
+const departmentSelect = document.getElementById("student-dept");
+const otherCourseField = document.getElementById("other-course-field");
+const otherCourseInput = document.getElementById("other-course");
+const totalVotesCount = document.getElementById("total-votes-count");
 
 const LOCAL_VOTE_KEY = "student-appreciation-voted";
 
@@ -39,32 +43,87 @@ const showMessage = (text, type = "info") => {
 };
 
 const sanitizeInput = (value) => value.trim().replace(/\s+/g, " ");
+const normalizeForMatch = (value) => sanitizeInput(value).toLowerCase();
+
+const isLogicalFirstName = (value) => {
+  if (!value) return false;
+  const hasOnlyLetters = /^[A-Za-z]+$/.test(value);
+  const hasValidLength = value.length >= 2 && value.length <= 20;
+  return hasOnlyLetters && hasValidLength;
+};
+
+const isLogicalSurname = (value) => {
+  if (!value) return false;
+  const hasOnlyLetters = /^[A-Za-z]+$/.test(value);
+  const hasValidLength = value.length >= 4 && value.length <= 20;
+  return hasOnlyLetters && hasValidLength;
+};
+
+const toggleOtherCourseField = () => {
+  const isOther = departmentSelect.value === "Other";
+  otherCourseField.classList.toggle("hidden", !isOther);
+  otherCourseInput.required = isOther;
+
+  if (!isOther) {
+    otherCourseInput.value = "";
+  }
+};
+
+const updateTotalVotesCounter = (studentsSnapshot) => {
+  let totalVotes = 0;
+
+  studentsSnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    totalVotes += Number(data.votes || 0);
+  });
+
+  totalVotesCount.textContent = String(totalVotes);
+};
+
+const getSelectedDepartment = () => {
+  if (departmentSelect.value === "Other") {
+    return sanitizeInput(otherCourseInput.value);
+  }
+
+  return sanitizeInput(departmentSelect.value);
+};
 
 const fetchLeaderboard = async () => {
   leaderboard.innerHTML = "";
   leaderboardEmpty.style.display = "none";
 
-  const leaderboardQuery = query(collection(db, "students"), orderBy("points", "desc"), limit(10));
-  const snapshot = await getDocs(leaderboardQuery);
+  try {
+    const leaderboardQuery = query(collection(db, "students"), orderBy("points", "desc"), limit(10));
+    const snapshot = await getDocs(leaderboardQuery);
 
-  if (snapshot.empty) {
+    if (snapshot.empty) {
+      leaderboardEmpty.style.display = "block";
+    } else {
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const li = document.createElement("li");
+        li.className = "leaderboard-item";
+        li.innerHTML = `
+          <div>
+            <span class="name">${data.name}</span>
+            <span class="meta">${data.department}</span>
+          </div>
+          <span class="points">${data.points} pts</span>
+        `;
+        leaderboard.appendChild(li);
+      });
+    }
+  } catch (error) {
     leaderboardEmpty.style.display = "block";
-    return;
+    console.error("Failed to load leaderboard:", error);
   }
 
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    const li = document.createElement("li");
-    li.className = "leaderboard-item";
-    li.innerHTML = `
-      <div>
-        <span class="name">${data.name}</span>
-        <span class="meta">${data.department}</span>
-      </div>
-      <span class="points">${data.points} pts</span>
-    `;
-    leaderboard.appendChild(li);
-  });
+  try {
+    const allVotesSnapshot = await getDocs(collection(db, "students"));
+    updateTotalVotesCounter(allVotesSnapshot);
+  } catch (error) {
+    console.error("Failed to load total vote counter:", error);
+  }
 };
 
 const submitVote = async (event) => {
@@ -76,28 +135,47 @@ const submitVote = async (event) => {
     return;
   }
 
-  const nameInput = document.getElementById("student-name");
-  const deptInput = document.getElementById("student-dept");
-  const name = sanitizeInput(nameInput.value);
-  const department = sanitizeInput(deptInput.value);
+  const firstNameInput = document.getElementById("student-first-name");
+  const surnameInput = document.getElementById("student-surname");
+  const firstName = sanitizeInput(firstNameInput.value);
+  const surname = sanitizeInput(surnameInput.value);
+  const department = getSelectedDepartment();
 
-  if (!name || !department) {
-    showMessage("Please enter both a student name and department.", "error");
+  if (!firstName || !surname || !department) {
+    showMessage("Please enter first name, surname, and department/course.", "error");
     return;
   }
+
+  if (!isLogicalFirstName(firstName)) {
+    showMessage("Please enter a valid first name (letters only, 2-20 characters).", "error");
+    return;
+  }
+
+  if (!isLogicalSurname(surname)) {
+    showMessage("Please enter a valid surname (letters only, at least 4 characters).", "error");
+    return;
+  }
+
+  const fullName = `${firstName} ${surname}`;
+  const nameKey = normalizeForMatch(fullName);
+  const departmentKey = normalizeForMatch(department);
 
   try {
     const existingQuery = query(
       collection(db, "students"),
-      where("name", "==", name),
-      where("department", "==", department)
+      where("nameKey", "==", nameKey),
+      where("departmentKey", "==", departmentKey)
     );
     const existingSnapshot = await getDocs(existingQuery);
 
     if (existingSnapshot.empty) {
       await addDoc(collection(db, "students"), {
-        name,
+        firstName,
+        surname,
+        name: fullName,
+        nameKey,
         department,
+        departmentKey,
         points: 10,
         votes: 1,
         createdAt: serverTimestamp(),
@@ -105,6 +183,12 @@ const submitVote = async (event) => {
     } else {
       const docRef = doc(db, "students", existingSnapshot.docs[0].id);
       await updateDoc(docRef, {
+        firstName,
+        surname,
+        name: fullName,
+        nameKey,
+        department,
+        departmentKey,
         points: increment(10),
         votes: increment(1),
       });
@@ -112,6 +196,7 @@ const submitVote = async (event) => {
 
     localStorage.setItem(LOCAL_VOTE_KEY, "true");
     voteForm.reset();
+    toggleOtherCourseField();
     showMessage("Vote submitted! Thank you for appreciating a classmate.");
     await fetchLeaderboard();
   } catch (error) {
@@ -120,7 +205,9 @@ const submitVote = async (event) => {
   }
 };
 
+departmentSelect.addEventListener("change", toggleOtherCourseField);
 voteForm.addEventListener("submit", submitVote);
 refreshBtn.addEventListener("click", fetchLeaderboard);
 
+toggleOtherCourseField();
 fetchLeaderboard();

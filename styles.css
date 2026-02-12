@@ -66,22 +66,62 @@ body {
   gap: 16px;
 }
 
+
+.vote-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.total-votes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.total-votes-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.total-votes-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-dark);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .field {
   display: grid;
   gap: 6px;
   font-size: 0.95rem;
 }
 
-.field input {
+.field input,
+.field select {
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   font-size: 1rem;
+  background: #fff;
 }
 
-.field input:focus {
+.field input:focus,
+.field select:focus {
   outline: 2px solid rgba(103, 80, 164, 0.3);
   border-color: var(--accent);
+}
+
+.hidden {
+  display: none;
 }
 
 .primary-btn {
@@ -169,6 +209,11 @@ body {
 }
 
 @media (max-width: 600px) {
+  .vote-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .leaderboard-item {
     flex-direction: column;
     align-items: flex-start;

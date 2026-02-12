@@ -18,22 +18,66 @@
       </header>
 
       <section class="card" aria-labelledby="vote-title">
-        <h2 id="vote-title">Cast your vote</h2>
+        <div class="vote-header">
+          <h2 id="vote-title">Cast your vote</h2>
+          <div class="total-votes" aria-live="polite">
+            <span class="total-votes-label">Total votes cast</span>
+            <span id="total-votes-count" class="total-votes-circle">0</span>
+          </div>
+        </div>
         <form id="vote-form" class="form">
           <label class="field">
-            <span>Student name</span>
-            <input type="text" id="student-name" name="studentName" placeholder="e.g., Aisha" required />
-          </label>
-          <label class="field">
-            <span>Department</span>
+            <span>First name</span>
             <input
               type="text"
-              id="student-dept"
-              name="studentDept"
-              placeholder="e.g., MCA"
+              id="student-first-name"
+              name="studentFirstName"
+              placeholder="e.g., Aman"
+              minlength="2"
+              maxlength="20"
+              pattern="[A-Za-z]+"
+              title="Use only letters (2-20 characters)."
               required
             />
           </label>
+
+          <label class="field">
+            <span>Surname</span>
+            <input
+              type="text"
+              id="student-surname"
+              name="studentSurname"
+              placeholder="e.g., Sahu"
+              minlength="4"
+              maxlength="20"
+              pattern="[A-Za-z]+"
+              title="Use only letters. Surname must be at least 4 characters."
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span>Department / Course</span>
+            <select id="student-dept" name="studentDept" required>
+              <option value="" selected disabled>Select course</option>
+              <option value="BTech">BTech</option>
+              <option value="BE">BE</option>
+              <option value="BSc">BSc</option>
+              <option value="BCA">BCA</option>
+              <option value="BCom">BCom</option>
+              <option value="MCA">MCA</option>
+              <option value="MSc">MSc</option>
+              <option value="MTech">MTech</option>
+              <option value="MBA">MBA</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <label class="field hidden" id="other-course-field">
+            <span>Enter your course</span>
+            <input type="text" id="other-course" name="otherCourse" placeholder="e.g., BA" />
+          </label>
+
           <button type="submit" class="primary-btn">Submit vote</button>
           <p id="vote-message" class="message" role="status" aria-live="polite"></p>
         </form>
